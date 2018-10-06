@@ -1,4 +1,4 @@
-﻿using Meterzy.Api.Helpers;
+﻿using Meterzy.Api.Helper;
 using Meterzy.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

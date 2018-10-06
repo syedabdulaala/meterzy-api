@@ -1,7 +1,7 @@
-﻿using Meterzy.Api.Helpers.Models;
+﻿using Meterzy.Api.Helper.Models;
 using Microsoft.Extensions.Configuration;
 
-namespace Meterzy.Api.Helpers
+namespace Meterzy.Api.Helper
 {
     public static class Config
     {
