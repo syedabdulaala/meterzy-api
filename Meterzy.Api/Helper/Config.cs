@@ -5,15 +5,17 @@ namespace Meterzy.Api.Helper
 {
     public static class Config
     {
-        //Property(ies)
+        #region Property(ies)
         public static AppSettings AppSettings { get; private set; }
         public static Secrets Secrets { get; private set; }
+        #endregion
 
-        //Method(s)
+        #region Constructor(s)
         public static void Init(IConfiguration configuration)
         {
             Secrets = new Secrets(configuration);
             AppSettings = new AppSettings(configuration);
         }
+        #endregion
     }
 }

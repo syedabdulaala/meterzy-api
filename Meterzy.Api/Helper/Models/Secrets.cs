@@ -4,35 +4,37 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Meterzy.Api.Helpers.Models
+namespace Meterzy.Api.Helper.Models
 {
     public class Secrets
     {
-        //Property(ies)
-        public string ConnectionString { get; set; }
+        #region Property(ies)
         public string PasswordSalt { get; }
         public EncryptionKeys EncryptionKeys { get; }
+        #endregion
 
-        //Constructor(s)
+        #region Constructor(s)
         public Secrets(IConfiguration configuration)
         {
-            ConnectionString = configuration[nameof(ConnectionString)];
             PasswordSalt = configuration[nameof(PasswordSalt)];
             EncryptionKeys = new EncryptionKeys(configuration.GetSection(nameof(EncryptionKeys)));
         }
+        #endregion        
     }
 
     public class EncryptionKeys
     {
-        //Property(ies)
+        #region Property(ies)
         public string Default { get; }
         public string Jwt { get; }
+        #endregion
 
-        //Constructor(s)
+        #region Constructor(s)
         public EncryptionKeys(IConfiguration configuration)
         {
             Default = configuration[nameof(Default)];
             Jwt = configuration[nameof(Jwt)];
         }
+        #endregion
     }
 }
