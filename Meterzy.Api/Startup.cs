@@ -65,7 +65,7 @@ namespace Meterzy.Api
 
         private void ConfigureMeterzyContextOptions(DbContextOptionsBuilder options)
         {
-            options.UseSqlServer(Environment.GetEnvironmentVariable("MeterzyConStr", EnvironmentVariableTarget.User));
+            options.UseMySQL(Environment.GetEnvironmentVariable("MeterzyConStr", EnvironmentVariableTarget.User));
         }
 
         private void ConfigureJwtBearerOptions(JwtBearerOptions options)

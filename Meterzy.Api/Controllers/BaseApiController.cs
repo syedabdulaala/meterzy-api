@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Net;
 
-namespace Meterzy.Api.Controller
+namespace Meterzy.Api.Controllers
 {
     [ApiController]
     public class BaseApiController : ControllerBase
