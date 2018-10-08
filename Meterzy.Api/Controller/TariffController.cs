@@ -1,4 +1,6 @@
-﻿using Meterzy.Data;
+﻿using Meterzy.Api.Helper;
+using Meterzy.Api.Model.Request.Tariff;
+using Meterzy.Data;
 using Meterzy.Entity.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,12 +17,16 @@ namespace Meterzy.Api.Controller
     {
         #region Variable(s)
         private IRepo<Tariff> _tariff;
+        private IRepo<FixedTariff> _fixedTariff;
+        private IRepo<RangedTariff> _rangedTariff;
         #endregion
 
         #region Constructor(s)
-        public TariffController(IRepo<Tariff> tariff, ILogger<BaseApiController> logger) : base(logger)
+        public TariffController(IRepo<Tariff> tariff, IRepo<FixedTariff> fixedTariff, IRepo<RangedTariff> rangedTariff, ILogger<BaseApiController> logger) : base(logger)
         {
             _tariff = tariff;
+            _fixedTariff = fixedTariff;
+            _rangedTariff = rangedTariff
         }
         #endregion
 
@@ -55,10 +61,70 @@ namespace Meterzy.Api.Controller
 
         #region POST Method(s)
         [HttpPost, Route("add")]
-        public async Task<IActionResult> Add()
+        public async Task<IActionResult> Add([FromBody] AddTariffRequest request)
         {
             try
             {
+                var exist = await _tariff.DataSet.Where(x => !x.Deleted && x.AppUserId == loggedInUserId && x.Name.ToLower() == request.Name.Trim().ToLower()).AnyAsync();
+                if (exist)
+                {
+
+                }
+
+                var newTariff = new Tariff()
+                {
+                    Name = request.Name,
+                    AppUserId = loggedInUserId
+                };
+                await _tariff.AddAsync(newTariff);
+                if (await _tariff.SaveAsync() == 0)
+                {
+                    return ServerError(
+                        code: HttpResponse.FailedToComplete.Key,
+                        message: HttpResponse.FailedToComplete.Value
+                    );
+                }
+
+                var newFixedTariffs = request.FixedTariffs.Select(x => new FixedTariff()
+                {
+                    TariffId = newTariff.Id,
+                    Name = x.Name,
+                    Charges = x.Charges,
+                    UnitType = (TariffUnitType)x.UnitType
+                });
+                foreach (var item in newFixedTariffs)
+                {
+                    await _fixedTariff.AddAsync(item);
+                }
+                if (await _fixedTariff.SaveAsync() == 0)
+                {
+                    return ServerError(
+                        code: HttpResponse.FailedToComplete.Key,
+                        message: HttpResponse.FailedToComplete.Value
+                    );
+                }
+
+                var newRangedTariffs = request.RangedTariff.Select(x => new RangedTariff()
+                {
+                    TariffId = newTariff.Id,
+                    Name = x.Name,
+                    UpperRange = x.UpperRange,
+                    LowerRange = x.LowerRange,
+                    Charges = x.Charges,
+                    UnitType = (TariffUnitType)x.UnitType
+                });
+                foreach (var item in newRangedTariffs)
+                {
+                    await _rangedTariff.AddAsync(item);
+                }
+                if (await _rangedTariff.SaveAsync() == 0)
+                {
+                    return ServerError(
+                        code: HttpResponse.FailedToComplete.Key,
+                        message: HttpResponse.FailedToComplete.Value
+                    );
+                }
+
                 return Success();
             }
             catch (Exception ex)
