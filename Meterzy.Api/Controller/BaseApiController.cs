@@ -6,20 +6,14 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Net;
 
-namespace Meterzy.Api.Controllers
+namespace Meterzy.Api.Controller
 {
     [ApiController]
     public class BaseApiController : ControllerBase
     {
-        #region Variable(s)
-        protected readonly ILogger _logger;
-        #endregion
-
         #region Constructor(s)
-        public BaseApiController(ILogger<BaseApiController> logger)
-        {
-            this._logger = logger;
-        }
+        public BaseApiController()
+        { }
         #endregion
 
         #region Sync Method(s)
@@ -50,7 +44,7 @@ namespace Meterzy.Api.Controllers
             var response = new MetaResponse
             {
                 Code = code ?? HttpResponse.SomethingWentWrong.Key,
-                Data = Const.Environment == EnvironmentName.Development ? ex.ToString() : null,
+                Data = Const.Environment.IsDevelopment() ? ex.ToString() : null,
                 Message = message ?? HttpResponse.SomethingWentWrong.Value
             };
             return StatusCode((int)statusCode, response);
@@ -60,9 +54,9 @@ namespace Meterzy.Api.Controllers
         {
             var response = new MetaResponse
             {
-                Code = code ?? HttpResponse.SomethingWentWrong.Key,
+                Code = code ?? HttpResponse.BadRequest.Key,
                 Data = data,
-                Message = message ?? HttpResponse.SomethingWentWrong.Value
+                Message = message ?? HttpResponse.BadRequest.Value
             };
             return StatusCode((int)statusCode, response);
         }

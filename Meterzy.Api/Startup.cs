@@ -1,6 +1,7 @@
 ﻿using Meterzy.Api.Extension;
 using Meterzy.Api.Helper;
 using Meterzy.Data;
+using Meterzy.Entity.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -9,9 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace Meterzy.Api
@@ -26,10 +25,8 @@ namespace Meterzy.Api
         public Startup(ILoggerFactory loggerFactory, IHostingEnvironment env)
         {
             Startup.loggerFactory = loggerFactory;
-            Const.Environment = env.EnvironmentName.ToLower();
-            Const.Paths.ContentRoot = env.ContentRootPath;
-            Const.Paths.WebRoot = env.WebRootPath;
-            InitConfigFiles();
+            Const.Environment = env;
+            InitConfig();
         }
         #endregion
 
@@ -40,32 +37,32 @@ namespace Meterzy.Api
             services.AddDbContext<MeterzyContext>(ConfigureMeterzyContextOptions, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(ConfigureJwtBearerOptions);
+            services.AddScoped<IRepo<AppUser>>((x) => { return new Repo<AppUser>(x.GetService<MeterzyContext>()); });
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            app.UseMvcWithDefaultRoute();
+            app.UseHsts();
+            app.UseCors();
+            app.UseGlobalExceptionHandler(loggerFactory.CreateLogger("GlobalExceptionHandler"));
+            app.UseHttpsRedirection();
+            app.UseMvc();
         }
 
-        private void InitConfigFiles()
+        private void InitConfig()
         {
             var configBuilder = new ConfigurationBuilder();
-            configBuilder.SetBasePath(Const.Paths.ContentRoot + "\\ConfigFile");
-            var secretsJson = Environment.GetEnvironmentVariable("MeterzySecret", EnvironmentVariableTarget.User);
+            configBuilder.SetBasePath(Const.Environment.ContentRootPath + "\\ConfigFile");
+            var secretsJson = Environment.GetEnvironmentVariable("Meterzy_Secrets", EnvironmentVariableTarget.User);
             var memoryFileProvider = new InMemoryFileProvider(secretsJson);
-            configBuilder.AddJsonFile($"appsettings.{Const.Environment}.json", false, true)
+            configBuilder.AddJsonFile($"appsettings.{Const.Environment.EnvironmentName.ToLower()}.json", false, true)
                          .AddJsonFile(memoryFileProvider, "secrets.json", false, false);
             Config.Init(configBuilder.Build());
         }
 
         private void ConfigureMeterzyContextOptions(DbContextOptionsBuilder options)
         {
-            options.UseMySQL(Environment.GetEnvironmentVariable("MeterzyConStr", EnvironmentVariableTarget.User));
+            options.UseSqlServer(Environment.GetEnvironmentVariable("Meterzy_ConnStr", EnvironmentVariableTarget.User));
         }
 
         private void ConfigureJwtBearerOptions(JwtBearerOptions options)

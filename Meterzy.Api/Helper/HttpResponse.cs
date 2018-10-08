@@ -19,6 +19,7 @@ namespace Meterzy.Api.Helper
         #region 400's Client error
             BadRequest = new KeyValuePair<string, string>("400.1", "Server failed to validate your request data."),
             InvalidCredentials = new KeyValuePair<string, string>("400.2", "Invalid credentials."),
+            EmailAddressAlreadyExist = new KeyValuePair<string, string>("400.3", "Email address already exist."),
         #endregion
 
         #region 500's Server error

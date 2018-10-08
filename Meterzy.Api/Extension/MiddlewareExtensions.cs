@@ -28,7 +28,7 @@ namespace Meterzy.Api.Extension
                         var response = new MetaResponse
                         {
                             Code = Helper.HttpResponse.SomethingWentWrong.Key,
-                            Data = Const.Environment == EnvironmentName.Development ? ex.ToString() : null,
+                            Data = Const.Environment.IsDevelopment() ? ex.ToString() : null,
                             Message = Helper.HttpResponse.SomethingWentWrong.Value
                         };
                         var serializedResponse = JsonConvert.SerializeObject(response);

@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meterzy.Entity", "Meterzy.E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meterzy.Data", "Meterzy.Data\Meterzy.Data.csproj", "{701FAA63-9587-408D-9C7E-2066CE957E6F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Meterzy.Api", "Meterzy.Api\Meterzy.Api.csproj", "{67361ACA-0B81-4BD9-B8FB-2A5FBD18D56F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Meterzy.Api", "Meterzy.Api\Meterzy.Api.csproj", "{67361ACA-0B81-4BD9-B8FB-2A5FBD18D56F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
