@@ -20,10 +20,13 @@ namespace Meterzy.Api.Helper
             BadRequest = new KeyValuePair<string, string>("400.1", "Server failed to validate your request data."),
             InvalidCredentials = new KeyValuePair<string, string>("400.2", "Invalid credentials."),
             EmailAddressAlreadyExist = new KeyValuePair<string, string>("400.3", "Email address already exist."),
+            MeterAccountNoAlreadyInUse = new KeyValuePair<string, string>("400.4", "Account no is already is use."),
+            MeterUnavailable = new KeyValuePair<string, string>("400.5", "Meter(s) not available."),
         #endregion
 
         #region 500's Server error
-            SomethingWentWrong = new KeyValuePair<string, string>("500.1", "Oops! Something went wrong on our server.");
+            SomethingWentWrong = new KeyValuePair<string, string>("500.1", "Oops! Something went wrong on our server."),
+            FailedToComplete = new KeyValuePair<string, string>("500.2", "Server failed to complete your request.");
         #endregion
     }
 }

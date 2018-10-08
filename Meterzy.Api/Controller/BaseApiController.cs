@@ -11,9 +11,16 @@ namespace Meterzy.Api.Controller
     [ApiController]
     public class BaseApiController : ControllerBase
     {
+        #region Variable(s)
+        protected readonly ILogger _logger;
+        protected int loggedInUserId;
+        #endregion
+
         #region Constructor(s)
-        public BaseApiController()
-        { }
+        public BaseApiController(ILogger<BaseApiController> logger)
+        {
+            _logger = logger;
+        }
         #endregion
 
         #region Sync Method(s)
@@ -39,7 +46,7 @@ namespace Meterzy.Api.Controller
             return StatusCode((int)statusCode, response);
         }
 
-        protected IActionResult ServerError(Exception ex, string code = null, string message = null, HttpStatusCode statusCode = HttpStatusCode.InternalServerError)
+        protected IActionResult ServerError(Exception ex = null, string code = null, string message = null, HttpStatusCode statusCode = HttpStatusCode.InternalServerError)
         {
             var response = new MetaResponse
             {
