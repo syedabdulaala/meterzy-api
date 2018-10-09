@@ -10,13 +10,7 @@ namespace Meterzy.Entity.Data
         TemporarySuspended,
         PermanentlySuspended
     }
-
-    public enum TariffType
-    {
-        Fixed,
-        Ranged
-    }
-
+    
     public enum TariffUnitType
     {
         Raw,
