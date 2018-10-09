@@ -26,7 +26,7 @@ namespace Meterzy.Api.Controller
         {
             _tariff = tariff;
             _fixedTariff = fixedTariff;
-            _rangedTariff = rangedTariff
+            _rangedTariff = rangedTariff;
         }
         #endregion
 
@@ -36,12 +36,15 @@ namespace Meterzy.Api.Controller
         {
             try
             {
-                var tariffs = await _tariff.DataSet.Where(x => !x.Deleted && x.AppUserId == loggedInUserId)
+                var tariffs = await _tariff.DataSet.Where(x => !x.Deleted && x.AppUserId == AuthenticatedUserId)
                                                    .Include(x => x.FixedTariffs)
                                                    .Include(x => x.RangedTariffs).ToListAsync();
                 if (tariffs == null)
                 {
-                    return ClientError();
+                    return ClientError(
+                        code: HttpResponse.TariffNotFound.Key,
+                        message: HttpResponse.TariffNotFound.Value
+                    );
                 }
 
                 return Success(tariffs.Select(x => new
@@ -65,16 +68,33 @@ namespace Meterzy.Api.Controller
         {
             try
             {
-                var exist = await _tariff.DataSet.Where(x => !x.Deleted && x.AppUserId == loggedInUserId && x.Name.ToLower() == request.Name.Trim().ToLower()).AnyAsync();
+                var exist = await _tariff.DataSet.Where(x => !x.Deleted && x.AppUserId == AuthenticatedUserId && x.Name.ToLower() == request.Name.Trim().ToLower()).AnyAsync();
                 if (exist)
                 {
-
+                    return ClientError(
+                        code: HttpResponse.TariffNotFound.Key,
+                        message: HttpResponse.TariffNotFound.Value
+                    );
                 }
 
                 var newTariff = new Tariff()
                 {
                     Name = request.Name,
-                    AppUserId = loggedInUserId
+                    AppUserId = AuthenticatedUserId,
+                    FixedTariffs = request.FixedTariffs.Select(x => new FixedTariff()
+                    {
+                        Name = x.Name,
+                        Charges = x.Charges,
+                        UnitType = (TariffUnitType)x.UnitType
+                    }).ToList(),
+                    RangedTariffs = request.RangedTariffs.Select(x => new RangedTariff()
+                    {
+                        Name = x.Name,
+                        UpperRange = x.UpperRange,
+                        LowerRange = x.LowerRange,
+                        Charges = x.Charges,
+                        UnitType = (TariffUnitType)x.UnitType
+                    }).ToList()
                 };
                 await _tariff.AddAsync(newTariff);
                 if (await _tariff.SaveAsync() == 0)
@@ -84,47 +104,6 @@ namespace Meterzy.Api.Controller
                         message: HttpResponse.FailedToComplete.Value
                     );
                 }
-
-                var newFixedTariffs = request.FixedTariffs.Select(x => new FixedTariff()
-                {
-                    TariffId = newTariff.Id,
-                    Name = x.Name,
-                    Charges = x.Charges,
-                    UnitType = (TariffUnitType)x.UnitType
-                });
-                foreach (var item in newFixedTariffs)
-                {
-                    await _fixedTariff.AddAsync(item);
-                }
-                if (await _fixedTariff.SaveAsync() == 0)
-                {
-                    return ServerError(
-                        code: HttpResponse.FailedToComplete.Key,
-                        message: HttpResponse.FailedToComplete.Value
-                    );
-                }
-
-                var newRangedTariffs = request.RangedTariff.Select(x => new RangedTariff()
-                {
-                    TariffId = newTariff.Id,
-                    Name = x.Name,
-                    UpperRange = x.UpperRange,
-                    LowerRange = x.LowerRange,
-                    Charges = x.Charges,
-                    UnitType = (TariffUnitType)x.UnitType
-                });
-                foreach (var item in newRangedTariffs)
-                {
-                    await _rangedTariff.AddAsync(item);
-                }
-                if (await _rangedTariff.SaveAsync() == 0)
-                {
-                    return ServerError(
-                        code: HttpResponse.FailedToComplete.Key,
-                        message: HttpResponse.FailedToComplete.Value
-                    );
-                }
-
                 return Success();
             }
             catch (Exception ex)
@@ -136,10 +115,77 @@ namespace Meterzy.Api.Controller
 
         #region PUT Method(s)
         [HttpPut, Route("update")]
-        public async Task<IActionResult> Update()
+        public async Task<IActionResult> Update([FromBody] UpdateTariffRequest request)
         {
             try
             {
+                var tariff = await _tariff.DataSet.Where(x => !x.Deleted && x.AppUserId == AuthenticatedUserId)
+                                                   .Include(x => x.RangedTariffs)
+                                                   .Include(x => x.FixedTariffs).FirstOrDefaultAsync();
+                if (tariff == null)
+                {
+                    return ClientError(
+                        code: HttpResponse.TariffNotFound.Key,
+                        message: HttpResponse.TariffNotFound.Value
+                    );
+                }
+
+                tariff.Name = request.Name;
+                foreach (var item in request.FixedTariffs)
+                {
+                    var updatedFixedTariff = tariff.FixedTariffs.Where(x => x.Id == item.Id).FirstOrDefault();
+                    updatedFixedTariff.Name = item.Name;
+                    updatedFixedTariff.Charges = item.Charges;
+                }
+                foreach (var item in request.RangedTariffs)
+                {
+                    var updatedRangedTariff = tariff.RangedTariffs.Where(x => x.Id == item.Id).FirstOrDefault();
+                    updatedRangedTariff.Name = item.Name;
+                    updatedRangedTariff.Charges = item.Charges;
+                    updatedRangedTariff.LowerRange = item.LowerRange;
+                    updatedRangedTariff.UpperRange = item.UpperRange;
+                }
+                await _tariff.UpdateAsync(tariff);
+                var fixedTariffsToRemove = tariff.FixedTariffs.Where(x => !request.FixedTariffs.Select(y => y.Id).Contains(x.Id)).ToList();
+                var rangedTariffsToRemove = tariff.RangedTariffs.Where(x => !request.RangedTariffs.Select(y => y.Id).Contains(x.Id)).ToList();
+                foreach (var item in fixedTariffsToRemove)
+                {
+                    await _fixedTariff.SoftDeleteAsync(item);
+                }
+                foreach (var item in rangedTariffsToRemove)
+                {
+                    await _rangedTariff.SoftDeleteAsync(item);
+                }
+
+                if (await _tariff.SaveAsync() > 0)
+                {
+                    return ServerError(
+                        code: HttpResponse.FailedToComplete.Key,
+                        message: HttpResponse.FailedToComplete.Value
+                    );
+                }
+                if (fixedTariffsToRemove.Count > 0)
+                {
+                    if (await _fixedTariff.SaveAsync() == 0)
+                    {
+                        return ServerError(
+                            code: HttpResponse.FailedToComplete.Key,
+                            message: HttpResponse.FailedToComplete.Value
+                        );
+                    }
+                }
+                if (rangedTariffsToRemove.Count > 0)
+                {
+                    if (await _rangedTariff.SaveAsync() == 0)
+                    {
+                        return ServerError(
+                            code: HttpResponse.FailedToComplete.Key,
+                            message: HttpResponse.FailedToComplete.Value
+                        );
+                    }
+                }
+
+
                 return Success();
             }
             catch (Exception ex)
@@ -151,10 +197,29 @@ namespace Meterzy.Api.Controller
 
         #region DELETE Method(s)
         [HttpDelete, Route("delete")]
-        public async Task<IActionResult> Delete()
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
+                var tariff = await _tariff.DataSet.Where(x => !x.Deleted && x.AppUserId == AuthenticatedUserId && x.Id == id)
+                                   .Include(x => x.RangedTariffs)
+                                   .Include(x => x.FixedTariffs).FirstOrDefaultAsync();
+                if (tariff == null)
+                {
+                    return ClientError(
+                        code: HttpResponse.TariffNotFound.Key,
+                        message: HttpResponse.TariffNotFound.Value
+                    );
+                }
+
+                await _tariff.SoftDeleteAsync(tariff);
+                if (await _tariff.SaveAsync() == 0)
+                {
+                    return ServerError(
+                        code: HttpResponse.FailedToComplete.Key,
+                        message: HttpResponse.FailedToComplete.Value
+                    );
+                }
                 return Success();
             }
             catch (Exception ex)

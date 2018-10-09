@@ -6,6 +6,7 @@ using Meterzy.Entity.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -26,7 +27,7 @@ namespace Meterzy.Api.Controller
         #endregion
 
         #region Constructor(s)
-        public AuthController(IRepo<AppUser> appUser) : base()
+        public AuthController(IRepo<AppUser> appUser, ILogger<BaseApiController> logger) : base(logger)
         {
             _appUser = appUser;
         }
@@ -77,8 +78,7 @@ namespace Meterzy.Api.Controller
                     );
                 }
 
-                var claims = new List<Claim> { new Claim("usr", appUser.Id.ToString().ToSha256Hash(null)) };
-                Response.Headers.Add(Const.HttpHeaderKey.Authorization, BuildToken(claims));
+                Response.Headers.Add(Const.HttpHeaderKey.Authorization, BuildToken(appUser.Id.ToString()));
 
                 return Success();
             }
@@ -90,18 +90,21 @@ namespace Meterzy.Api.Controller
         #endregion
 
         #region General Method(s)
-        private string BuildToken(List<Claim> claims)
+        private string BuildToken(string appUserId)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Config.Secrets.EncryptionKeys.Jwt));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var token = new JwtSecurityToken(
-                issuer: Config.AppSettings.Jwt.Authority,
-                audience: Config.AppSettings.Jwt.Audience,
-                expires: DateTime.Now.AddMinutes(5),
-                signingCredentials: creds,
-                claims: claims
-            );
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(Config.Secrets.EncryptionKeys.Jwt);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Name, appUserId)
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
         #endregion
     }

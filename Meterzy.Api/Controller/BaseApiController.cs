@@ -13,7 +13,7 @@ namespace Meterzy.Api.Controller
     {
         #region Variable(s)
         protected readonly ILogger _logger;
-        protected int loggedInUserId;
+        protected int AuthenticatedUserId => int.Parse(User.Identity.Name);
         #endregion
 
         #region Constructor(s)

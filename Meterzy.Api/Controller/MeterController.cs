@@ -32,7 +32,7 @@ namespace Meterzy.Api.Controller
         {
             try
             {
-                var meters = await _meter.DataSet.Where(x => x.AppUserId == loggedInUserId).Include(x => x.Tariff).ToListAsync();
+                var meters = await _meter.DataSet.Where(x => x.AppUserId == AuthenticatedUserId).Include(x => x.Tariff).ToListAsync();
                 return Success(meters.Select(x => new
                 {
                     x.Id,
@@ -71,7 +71,7 @@ namespace Meterzy.Api.Controller
                 var newMeter = new Meter()
                 {
                     AccountNo = request.AccountNo,
-                    AppUserId = loggedInUserId,
+                    AppUserId = AuthenticatedUserId,
                     ConsumerNo = request.ConsumerNo,
                     Name = request.Name,
                     TariffId = request.TariffId
@@ -93,12 +93,12 @@ namespace Meterzy.Api.Controller
         {
             try
             {
-                var meter = await _meter.DataSet.Where(x => !x.Deleted && x.Id == request.Id && x.AppUserId == loggedInUserId).FirstOrDefaultAsync();
+                var meter = await _meter.DataSet.Where(x => !x.Deleted && x.Id == request.Id && x.AppUserId == AuthenticatedUserId).FirstOrDefaultAsync();
                 if (meter == null)
                 {
                     return ClientError(
-                        code: HttpResponse.MeterUnavailable.Key,
-                        message: HttpResponse.MeterUnavailable.Value
+                        code: HttpResponse.MeterNotFound.Key,
+                        message: HttpResponse.MeterNotFound.Value
                     );
                 }
 
@@ -112,7 +112,7 @@ namespace Meterzy.Api.Controller
                 }
 
                 meter.AccountNo = request.AccountNo;
-                meter.AppUserId = loggedInUserId;
+                meter.AppUserId = AuthenticatedUserId;
                 meter.ConsumerNo = request.ConsumerNo;
                 meter.Name = request.Name;
                 meter.TariffId = request.TariffId;
@@ -139,12 +139,12 @@ namespace Meterzy.Api.Controller
         {
             try
             {
-                var meter = await _meter.DataSet.Where(x => !x.Deleted && x.Id == id && x.AppUserId == loggedInUserId).FirstOrDefaultAsync();
+                var meter = await _meter.DataSet.Where(x => !x.Deleted && x.Id == id && x.AppUserId == AuthenticatedUserId).FirstOrDefaultAsync();
                 if (meter == null)
                 {
                     return ClientError(
-                        code: HttpResponse.MeterUnavailable.Key,
-                        message: HttpResponse.MeterUnavailable.Value
+                        code: HttpResponse.MeterNotFound.Key,
+                        message: HttpResponse.MeterNotFound.Value
                     );
                 }
 

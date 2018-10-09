@@ -2,6 +2,7 @@
 using Meterzy.Api.Helper;
 using Meterzy.Data;
 using Meterzy.Entity.Data;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -12,6 +13,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Meterzy.Api
 {
@@ -35,17 +38,26 @@ namespace Meterzy.Api
         {
             services.AddMvc();
             services.AddDbContext<MeterzyContext>(ConfigureMeterzyContextOptions, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            services.AddAuthentication(ConfigureAuthenticationOptions)
                     .AddJwtBearer(ConfigureJwtBearerOptions);
             services.AddScoped<IRepo<AppUser>>((x) => { return new Repo<AppUser>(x.GetService<MeterzyContext>()); });
+            services.AddScoped<IRepo<Tariff>>((x) => { return new Repo<Tariff>(x.GetService<MeterzyContext>()); });
+            services.AddScoped<IRepo<FixedTariff>>((x) => { return new Repo<FixedTariff>(x.GetService<MeterzyContext>()); });
+            services.AddScoped<IRepo<RangedTariff>>((x) => { return new Repo<RangedTariff>(x.GetService<MeterzyContext>()); });
+            services.AddScoped<IRepo<Meter>>((x) => { return new Repo<Meter>(x.GetService<MeterzyContext>()); });
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UseHsts();
-            app.UseCors();
+            app.UseCors(x => x.AllowAnyOrigin()
+                              .AllowAnyMethod()
+                              .AllowAnyHeader()
+                              .AllowCredentials());
+
             app.UseGlobalExceptionHandler(loggerFactory.CreateLogger("GlobalExceptionHandler"));
             app.UseHttpsRedirection();
+            app.UseAuthentication();
             app.UseMvc();
         }
 
@@ -65,18 +77,35 @@ namespace Meterzy.Api
             options.UseSqlServer(Environment.GetEnvironmentVariable("Meterzy_ConnStr", EnvironmentVariableTarget.User));
         }
 
+        private void ConfigureAuthenticationOptions(AuthenticationOptions options)
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        }
+
         private void ConfigureJwtBearerOptions(JwtBearerOptions options)
         {
-            options.Authority = Config.AppSettings.Jwt.Authority;
-            options.Audience = Config.AppSettings.Jwt.Audience;
-            options.TokenValidationParameters = new TokenValidationParameters()
+            options.Events = new JwtBearerEvents
             {
-                RequireSignedTokens = true,
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidIssuer = Config.AppSettings.Jwt.Authority,
-                ValidAudience = Config.AppSettings.Jwt.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Config.Secrets.EncryptionKeys.Jwt))
+                OnTokenValidated = async context =>
+                {
+                    var appUser = context.HttpContext.RequestServices.GetRequiredService<IRepo<AppUser>>();
+                    var userId = int.Parse(context.Principal.Identity.Name);
+                    var user = await appUser.DataSet.Where(x => !x.Deleted && x.Id == userId).FirstOrDefaultAsync();
+                    if (user == null)
+                    {
+                        context.Fail("Unauthorized");
+                    }
+                }
+            };
+            options.RequireHttpsMetadata = false;
+            options.SaveToken = true;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Config.Secrets.EncryptionKeys.Jwt)),
+                ValidateIssuer = false,
+                ValidateAudience = false
             };
         }
         #endregion
