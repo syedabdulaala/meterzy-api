@@ -89,6 +89,7 @@ namespace Meterzy.Data
 
         public async Task<int> SaveAsync()
         {
+            InnerSave();
             return await dbContext.SaveChangesAsync();
         }
         #endregion
@@ -132,8 +133,23 @@ namespace Meterzy.Data
 
         public int Save()
         {
+            InnerSave();
             return dbContext.SaveChanges();
-        }        
+        }
+        #endregion
+
+        #region General Method(s)
+        private void InnerSave()
+        {
+            var changedEnteries = dbContext.ChangeTracker.Entries<Table>().Where(x => x.State == EntityState.Added || x.State == EntityState.Modified);
+            foreach (var entry in changedEnteries)
+            {
+                if (entry.State == EntityState.Added)
+                    entry.Entity.CreatedOn = DateTime.UtcNow;
+                if (entry.State == EntityState.Modified)
+                    entry.Entity.LastModifiedOn = DateTime.UtcNow;
+            }
+        }
         #endregion
     }
 }
