@@ -15,7 +15,7 @@ namespace Meterzy.Api.Controller
         {
         }
 
-        [HttpGet, Route("/literals"), ResponseCache(NoStore = false, Location = ResponseCacheLocation.Any, Duration = 1000)]
+        [HttpGet, Route("/literals"), ResponseCache(NoStore = false, Duration = 10000)]
         public IActionResult All()
         {
             try
