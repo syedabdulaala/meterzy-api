@@ -1,5 +1,5 @@
 ﻿using Meterzy.Api.Helper;
-using Meterzy.Api.Model.Response;
+using Meterzy.Api.Helper.Model;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;

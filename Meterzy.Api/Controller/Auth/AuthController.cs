@@ -50,7 +50,7 @@ namespace Meterzy.Api.Controller.Auth
                 var newUser = new AppUser
                 {
                     DisplayName = $"{request.FirstName} {request.LastName}",
-                    PasswordHash = request.Password.ToSha256Hash(Config.Secrets.PasswordSalt),
+                    PasswordHash = request.Password.ToSha256Hash(Config.Secrets.Salt),
                     EmailHash = request.Email.ToSha256Hash(),
                     Status = AppUserStatus.Active
                 };
@@ -70,7 +70,7 @@ namespace Meterzy.Api.Controller.Auth
             try
             {
                 var appUser = await _appUser.DataSet.Where(x => x.EmailHash == request.Email.ToSha256Hash(null)).FirstOrDefaultAsync();
-                if (appUser == null || appUser.PasswordHash != request.Password.ToSha256Hash(Config.Secrets.PasswordSalt))
+                if (appUser == null || appUser.PasswordHash != request.Password.ToSha256Hash(Config.Secrets.Salt))
                 {
                     return ClientError(
                         code: HttpResponse.InvalidCredentials.Key,
@@ -93,7 +93,7 @@ namespace Meterzy.Api.Controller.Auth
         private string BuildToken(string appUserId)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(Config.Secrets.EncryptionKeys.Jwt);
+            var key = Encoding.ASCII.GetBytes(Config.Secrets.JwtKey);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]

@@ -21,6 +21,7 @@ namespace Meterzy.Api.Helper
             InvalidCredentials = new KeyValuePair<string, string>("400.2", "Invalid credentials."),
             EmailAddressAlreadyExist = new KeyValuePair<string, string>("400.3", "Email address already exist."),
             MeterAccountNoAlreadyInUse = new KeyValuePair<string, string>("400.4", "Account no is already is use."),
+            Unauthorized = new KeyValuePair<string, string>("401.1", "Unauthorized request."),
             MeterNotFound = new KeyValuePair<string, string>("404.1", "Meter(s) not found."),
             TariffNotFound = new KeyValuePair<string, string>("404.2", "Tariff(s) not found."),
         #endregion

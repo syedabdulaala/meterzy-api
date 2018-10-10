@@ -1,4 +1,4 @@
-﻿using Meterzy.Api.Helper.Models;
+﻿using Meterzy.Api.Helper.Model;
 using Microsoft.Extensions.Configuration;
 
 namespace Meterzy.Api.Helper

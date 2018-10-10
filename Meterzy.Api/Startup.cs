@@ -1,20 +1,22 @@
 ﻿using Meterzy.Api.Extension;
 using Meterzy.Api.Helper;
+using Meterzy.Api.Helper.Model;
 using Meterzy.Data;
 using Meterzy.Entity.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using System;
-using System.Text;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Text;
 
 namespace Meterzy.Api
 {
@@ -55,7 +57,7 @@ namespace Meterzy.Api
                               .AllowAnyHeader()
                               .AllowCredentials());
 
-            app.UseGlobalExceptionHandler(loggerFactory.CreateLogger("GlobalExceptionHandler"));
+            app.UseGlobalExceptionHandler(loggerFactory.CreateLogger(env.ApplicationName));
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseMvc();
@@ -65,16 +67,14 @@ namespace Meterzy.Api
         {
             var configBuilder = new ConfigurationBuilder();
             configBuilder.SetBasePath(Const.Environment.ContentRootPath + "\\ConfigFile");
-            var secretsJson = Environment.GetEnvironmentVariable("Meterzy_Secrets", EnvironmentVariableTarget.User);
-            var memoryFileProvider = new InMemoryFileProvider(secretsJson);
             configBuilder.AddJsonFile($"appsettings.{Const.Environment.EnvironmentName.ToLower()}.json", false, true)
-                         .AddJsonFile(memoryFileProvider, "secrets.json", false, false);
+                         .AddUserSecrets<Startup>();
             Config.Init(configBuilder.Build());
         }
 
         private void ConfigureMeterzyContextOptions(DbContextOptionsBuilder options)
         {
-            options.UseSqlServer(Environment.GetEnvironmentVariable("Meterzy_ConnStr", EnvironmentVariableTarget.User));
+            options.UseSqlServer(Config.Secrets.ConnectionString);
         }
 
         private void ConfigureAuthenticationOptions(AuthenticationOptions options)
@@ -94,7 +94,7 @@ namespace Meterzy.Api
                     var user = await appUser.DataSet.Where(x => !x.Deleted && x.Id == userId).FirstOrDefaultAsync();
                     if (user == null)
                     {
-                        context.Fail("Unauthorized");
+                        context.Fail(Helper.HttpResponse.Unauthorized.Value);
                     }
                 }
             };
@@ -103,7 +103,7 @@ namespace Meterzy.Api
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Config.Secrets.EncryptionKeys.Jwt)),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Config.Secrets.JwtKey)),
                 ValidateIssuer = false,
                 ValidateAudience = false
             };
