@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Meterzy.Api.Model.Request.Meter
+namespace Meterzy.Api.Controller.Meter.Model
 {
     public class UpdateMeterRequest : AddMeterRequest
     {

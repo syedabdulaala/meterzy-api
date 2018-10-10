@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Meterzy.Api.Model.Request.Auth
+namespace Meterzy.Api.Controller.Auth.Model
 {
     public sealed class LoginRequest
     {

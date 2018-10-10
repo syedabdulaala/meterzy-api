@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 
-namespace Meterzy.Api.Controller
+namespace Meterzy.Api.Controller.Literal
 {
     [Route("literal"), Authorize]
     public class LiteralController : BaseApiController

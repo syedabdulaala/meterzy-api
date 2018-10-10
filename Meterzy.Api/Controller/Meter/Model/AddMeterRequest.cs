@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Meterzy.Api.Model.Request.Meter
+namespace Meterzy.Api.Controller.Meter.Model
 {
     public class AddMeterRequest
     {

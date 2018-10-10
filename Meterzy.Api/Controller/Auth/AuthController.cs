@@ -1,6 +1,6 @@
 ﻿using Meterzy.Api.Extension;
 using Meterzy.Api.Helper;
-using Meterzy.Api.Model.Request.Auth;
+using Meterzy.Api.Controller.Auth.Model;
 using Meterzy.Data;
 using Meterzy.Entity.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -16,7 +16,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Meterzy.Api.Controller
+namespace Meterzy.Api.Controller.Auth
 {
     [Route("auth")]
     [AllowAnonymous]

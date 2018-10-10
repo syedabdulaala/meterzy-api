@@ -1,5 +1,5 @@
 ﻿using Meterzy.Api.Helper;
-using Meterzy.Api.Model.Request.Meter;
+using Meterzy.Api.Controller.Meter.Model;
 using Meterzy.Data;
 using Meterzy.Entity.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -10,17 +10,17 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Meterzy.Api.Controller
+namespace Meterzy.Api.Controller.Meter
 {
     [Route("meter"), Authorize]
     public class MeterController : BaseApiController
     {
         #region Variable(s)
-        private readonly IRepo<Meter> _meter;
+        private readonly IRepo<Entity.Data.Meter> _meter;
         #endregion
 
         #region Constructor(s)
-        public MeterController(IRepo<Meter> meter, ILogger<BaseApiController> logger) : base(logger)
+        public MeterController(IRepo<Entity.Data.Meter> meter, ILogger<BaseApiController> logger) : base(logger)
         {
             _meter = meter;
         }
@@ -68,7 +68,7 @@ namespace Meterzy.Api.Controller
                     );
                 }
 
-                var newMeter = new Meter()
+                var newMeter = new Entity.Data.Meter()
                 {
                     AccountNo = request.AccountNo,
                     AppUserId = AuthenticatedUserId,

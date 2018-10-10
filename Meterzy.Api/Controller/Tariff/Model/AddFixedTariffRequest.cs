@@ -4,16 +4,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Meterzy.Api.Model.Request.Tariff
+namespace Meterzy.Api.Controller.Tariff.Model
 {
-    public class AddRangedTariffRequest
+    public class AddFixedTariffRequest
     {
         [Required]
         public string Name { get; set; }
-        [Required]
-        public int UpperRange { get; set; }
-        [Required]
-        public int LowerRange { get; set; }
         [Required]
         public decimal Charges { get; set; }
         [Required, Range(0, 2)]

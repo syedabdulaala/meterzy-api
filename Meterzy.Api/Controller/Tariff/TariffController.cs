@@ -1,7 +1,6 @@
-﻿using Meterzy.Api.Helper;
-using Meterzy.Api.Model.Request.Tariff;
+﻿using Meterzy.Api.Controller.Tariff.Model;
+using Meterzy.Api.Helper;
 using Meterzy.Data;
-using Meterzy.Entity.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,19 +9,19 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Meterzy.Api.Controller
+namespace Meterzy.Api.Controller.Tariff
 {
     [Route("tariff"), Authorize]
     public class TariffController : BaseApiController
     {
         #region Variable(s)
-        private IRepo<Tariff> _tariff;
-        private IRepo<FixedTariff> _fixedTariff;
-        private IRepo<RangedTariff> _rangedTariff;
+        private IRepo<Entity.Data.Tariff> _tariff;
+        private IRepo<Entity.Data.FixedTariff> _fixedTariff;
+        private IRepo<Entity.Data.RangedTariff> _rangedTariff;
         #endregion
 
         #region Constructor(s)
-        public TariffController(IRepo<Tariff> tariff, IRepo<FixedTariff> fixedTariff, IRepo<RangedTariff> rangedTariff, ILogger<BaseApiController> logger) : base(logger)
+        public TariffController(IRepo<Entity.Data.Tariff> tariff, IRepo<Entity.Data.FixedTariff> fixedTariff, IRepo<Entity.Data.RangedTariff> rangedTariff, ILogger<BaseApiController> logger) : base(logger)
         {
             _tariff = tariff;
             _fixedTariff = fixedTariff;
@@ -77,23 +76,23 @@ namespace Meterzy.Api.Controller
                     );
                 }
 
-                var newTariff = new Tariff()
+                var newTariff = new Entity.Data.Tariff()
                 {
                     Name = request.Name,
                     AppUserId = AuthenticatedUserId,
-                    FixedTariffs = request.FixedTariffs.Select(x => new FixedTariff()
+                    FixedTariffs = request.FixedTariffs.Select(x => new Entity.Data.FixedTariff()
                     {
                         Name = x.Name,
                         Charges = x.Charges,
-                        UnitType = (TariffUnitType)x.UnitType
+                        UnitType = (Entity.Data.TariffUnitType)x.UnitType
                     }).ToList(),
-                    RangedTariffs = request.RangedTariffs.Select(x => new RangedTariff()
+                    RangedTariffs = request.RangedTariffs.Select(x => new Entity.Data.RangedTariff()
                     {
                         Name = x.Name,
                         UpperRange = x.UpperRange,
                         LowerRange = x.LowerRange,
                         Charges = x.Charges,
-                        UnitType = (TariffUnitType)x.UnitType
+                        UnitType = (Entity.Data.TariffUnitType)x.UnitType
                     }).ToList()
                 };
                 await _tariff.AddAsync(newTariff);

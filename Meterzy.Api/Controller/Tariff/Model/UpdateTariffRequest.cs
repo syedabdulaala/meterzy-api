@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Meterzy.Api.Model.Request.Tariff
+namespace Meterzy.Api.Controller.Tariff.Model
 {
     public class UpdateTariffRequest : AddTariffRequest
     {

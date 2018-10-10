@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Meterzy.Api.Model.Request.Tariff
+namespace Meterzy.Api.Controller.Tariff.Model
 {
     public class AddTariffRequest
     {
