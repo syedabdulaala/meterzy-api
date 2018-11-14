@@ -50,8 +50,8 @@ namespace Meterzy.Api.Controller.Tariff
                 {
                     x.Id,
                     x.Name,
-                    FixedTariffs = x.FixedTariffs.Select(y => new { y.Id, y.Name }),
-                    RangedTariffs = x.RangedTariffs.Select(y => new { y.Id, y.Name })
+                    FixedTariffs = x.FixedTariffs.Select(y => new { y.Id, y.Name, y.Charges, UnitType = (int)y.UnitType }),
+                    RangedTariffs = x.RangedTariffs.Select(y => new { y.Id, y.Name, y.Charges, y.LowerRange, y.UpperRange, UnitType = (int)y.UnitType })
                 }));
             }
             catch (Exception ex)
@@ -196,7 +196,7 @@ namespace Meterzy.Api.Controller.Tariff
 
         #region DELETE Method(s)
         [HttpDelete, Route("delete")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete([FromQuery] int id)
         {
             try
             {

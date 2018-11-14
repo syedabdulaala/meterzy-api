@@ -77,10 +77,11 @@ namespace Meterzy.Api.Controller.Auth
                         message: HttpResponse.InvalidCredentials.Value
                     );
                 }
-
-                Response.Headers.Add(Const.HttpHeaderKey.Authorization, BuildToken(appUser.Id.ToString()));
-
-                return Success();
+                
+                return Success(new {
+                    appUser.DisplayName,
+                    Token = BuildToken(appUser.Id.ToString())
+                });
             }
             catch (Exception ex)
             {
